@@ -4,6 +4,7 @@ import { Match } from 'src/decorators/match.decorator';
 export class RegisterDto {
   @IsNotEmpty({ message: '사용자 이름을 입력하세요.' })
   username: string;
+
   @IsEmail({}, { message: '유효한 이메일 주소를 입력하세요.' })
   email: string;
 
