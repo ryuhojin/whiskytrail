@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Distilleries {
+  distillery_id    Int        @id @default(autoincrement())
+  name             String
+  location         String?
+  established_year Int?
+  is_closed        Boolean?   @default(false)
+  website          String?
+  whiskeys         Whiskeys[]
+}
+
+model IndependentBottlers {
+  bottler_id       Int        @id @default(autoincrement())
+  name             String
+  location         String?
+  established_year Int?
+  description      String?
+  whiskeys         Whiskeys[]
+}
+
+model ReviewComments {
+  comment_id   Int       @id @default(autoincrement())
+  review_id    Int
+  user_id      Int
+  comment_text String
+  created_at   DateTime? @default(now())
+  updated_at   DateTime? @default(now())
+  reviews      Reviews   @relation(fields: [review_id], references: [review_id])
+  user         User      @relation(fields: [user_id], references: [user_id])
+}
+
+model ReviewLikes {
+  like_id    Int       @id @default(autoincrement())
+  review_id  Int
+  user_id    Int
+  created_at DateTime? @default(now())
+  reviews    Reviews   @relation(fields: [review_id], references: [review_id])
+  user       User      @relation(fields: [user_id], references: [user_id])
+  
+  @@unique([review_id, user_id])
+}
+
+model Reviews {
+  review_id      Int       @id @default(autoincrement())
+  user_id        Int?
+  whiskey_id     Int?
+  nosing_notes   Json?
+  palate_notes   Json?
+  finish_notes   Json?
+  color          String?
+  overall_rating Decimal?
+  review_text    String?
+  created_at     DateTime? @default(now())
+  updated_at     DateTime? @default(now())
+  reviewcomments ReviewComments[]
+  reviewlikes    ReviewLikes[]
+  user           User?     @relation(fields: [user_id], references: [user_id])
+  whiskeys       Whiskeys? @relation(fields: [whiskey_id], references: [whiskey_id])
+}
+
+model Tags {
+  tag_id      Int           @id @default(autoincrement())
+  name        String        @unique
+  whiskeytags WhiskeyTags[]
+}
+
+model UserFollows {
+  follower_id  Int
+  following_id Int
+  created_at   DateTime? @default(now())
+  follower     User  @relation("UserFollowsFollower", fields: [follower_id], references: [user_id])
+  following    User  @relation("UserFollowsFollowing", fields: [following_id], references: [user_id])
+  
+  @@id([follower_id, following_id])
+}
+
+model User {
+  user_id        Int            @id @default(autoincrement())
+  username       String         @unique
+  email          String         @unique
+  password_hash  String
+  profile_image  String?
+  created_at     DateTime?      @default(now())
+  updated_at     DateTime?      @default(now())
+  reviewcomments ReviewComments[]
+  reviewlikes    ReviewLikes[]
+  reviews        Reviews[]
+  followers      UserFollows[]  @relation("UserFollowsFollowing")
+  following      UserFollows[]  @relation("UserFollowsFollower")
+}
+
+model WhiskeyImages {
+  image_id   Int       @id @default(autoincrement())
+  whiskey_id Int
+  image_url  String
+  is_primary Boolean?  @default(false)
+  created_at DateTime? @default(now())
+  whiskeys   Whiskeys  @relation(fields: [whiskey_id], references: [whiskey_id])
+}
+
+model Whiskeys {
+  whiskey_id             Int                  @id @default(autoincrement())
+  name                   String
+  age                    Int?
+  is_independent_bottled Boolean?             @default(false)
+  is_limited_edition     Boolean?             @default(false)
+  cask_type              String?
+  price                  Decimal?
+  description            String?
+  release_date           DateTime?
+  distillery_id          Int?
+  bottler_id             Int?
+  reviews                Reviews[]
+  whiskeyimages          WhiskeyImages[]
+  independentbottlers    IndependentBottlers? @relation(fields: [bottler_id], references: [bottler_id])
+  distilleries           Distilleries?        @relation(fields: [distillery_id], references: [distillery_id])
+  whiskeytags            WhiskeyTags[]
+}
+
+model WhiskeyTags {
+  whiskey_id Int
+  tag_id     Int
+  tags       Tags    @relation(fields: [tag_id], references: [tag_id])
+  whiskeys   Whiskeys @relation(fields: [whiskey_id], references: [whiskey_id])
+  
+  @@id([whiskey_id, tag_id])
+}

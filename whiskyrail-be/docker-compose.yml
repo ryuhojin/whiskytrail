@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13       # 원하는 버전을 지정 (예: 13, 14, latest 등)
+    container_name: whiskytrail
+    restart: always
+    environment:
+      POSTGRES_USER: WHISKYTRAIL           # 원하는 사용자명으로 변경
+      POSTGRES_PASSWORD: WHISKYTRAIL   # 원하는 비밀번호로 변경
+      POSTGRES_DB: WHISKYTRAIL     # 앱에서 사용할 데이터베이스명
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
