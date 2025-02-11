@@ -1,47 +1,25 @@
+// src/users/users.service.ts
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { User } from '@prisma/client'; // Optional: 타입으로 사용
+import * as bcrypt from 'bcrypt';
+
+interface CreateUserDto {
+  username: string;
+  email: string;
+  hashedPassword: string;
+}
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  // 단일 사용자 조회
-  async getUserById(userId: number): Promise<User> {
-    const user = await this.prisma.user.findUnique({
-      where: { user_id: userId },
-    });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
-    }
-    return user;
-  }
-
-  async getUserByUsername(username: string): Promise<User> {
-    const user = await this.prisma.user.findUnique({
-      where: { username },
-    });
-    if (!user) {
-      throw new NotFoundException(`User with username ${username} not found`);
-    }
-    return user;
-  }
-
-  async getUserByEmail(email: string): Promise<User> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
-    if (!user) {
-      throw new NotFoundException(`User with email ${email} not found`);
-    }
-    return user;
-  }
-
-  async createUser(data: {
-    username: string;
-    email: string;
-    hashedPassword: string;
-  }) {
+  /**
+   * 새로운 사용자를 생성합니다.
+   * @param data - 생성할 사용자 데이터 (비밀번호는 이미 해싱된 값)
+   * @returns 생성된 사용자 객체
+   */
+  async createUser(data: CreateUserDto) {
     return this.prisma.user.create({
       data: {
         username: data.username,
@@ -51,23 +29,44 @@ export class UsersService {
     });
   }
 
-  // 전체 사용자 목록 조회
-  async getAllUsers(): Promise<User[]> {
-    return this.prisma.user.findMany();
-  }
-
-  // 사용자 정보 업데이트
-  async updateUser(userId: number, data: Partial<User>): Promise<User> {
-    return this.prisma.user.update({
-      where: { user_id: userId },
-      data,
+  /**
+   * 이메일로 사용자를 조회합니다.
+   * @param email - 사용자의 이메일
+   * @returns 사용자가 있으면 반환, 없으면 null
+   */
+  async findByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
     });
   }
 
-  // 사용자 삭제 (옵션)
-  async deleteUser(userId: number): Promise<User> {
-    return this.prisma.user.delete({
+  /**
+   * 사용자 ID로 사용자를 조회합니다.
+   * @param userId - 사용자 ID
+   * @returns 사용자 객체
+   * @throws NotFoundException 사용자가 존재하지 않을 경우
+   */
+  async findById(userId: number) {
+    const user = await this.prisma.user.findUnique({
       where: { user_id: userId },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  /**
+   * 리프레시 토큰(plain text)을 해싱하여 해당 사용자의 DB 레코드에 저장합니다.
+   * @param userId - 사용자 ID
+   * @param refreshToken - 클라이언트로부터 받은 리프레시 토큰 (plain text)
+   * @returns 업데이트된 사용자 객체
+   */
+  async updateRefreshToken(userId: number, refreshToken: string) {
+    const hashedToken = await bcrypt.hash(refreshToken, 10);
+    return this.prisma.user.update({
+      where: { user_id: userId },
+      data: { refresh_token: hashedToken },
     });
   }
 }

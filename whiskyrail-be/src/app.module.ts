@@ -2,17 +2,11 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
-import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+
 @Module({
-  imports: [
-    PrismaModule,
-    PassportModule,
-    JwtModule.register({
-      secret: 'yourSecretKey', // 실제 환경에서는 환경변수로 관리
-      signOptions: { expiresIn: '1h' },
-    }),
-  ],
+  imports: [PrismaModule, AuthModule, UsersModule],
   controllers: [AppController],
   providers: [AppService],
 })
