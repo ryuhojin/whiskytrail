@@ -88,6 +88,7 @@ model User {
   email          String         @unique
   password_hash  String
   profile_image  String?
+  refresh_token  String?        // 토큰 재발급을 위한 필드 추가 (선택)
   created_at     DateTime?      @default(now())
   updated_at     DateTime?      @default(now())
   reviewcomments ReviewComments[]
