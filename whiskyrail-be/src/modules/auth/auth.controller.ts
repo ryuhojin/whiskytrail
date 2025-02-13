@@ -21,7 +21,6 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  // 토큰 재발급 엔드포인트 (리프레시 토큰)
   @Public()
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
