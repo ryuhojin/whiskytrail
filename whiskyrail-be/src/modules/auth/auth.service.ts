@@ -7,7 +7,6 @@ import {
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
 import { UsersService } from 'src/modules/users/users.service';
 
 @Injectable()
@@ -17,9 +16,43 @@ export class AuthService {
     private usersService: UsersService,
   ) {}
 
-  // 토큰 생성 함수 (액세스 토큰과 리프레시 토큰 발급)
-  private generateTokens(user: any) {
-    const payload = { sub: user.user_id, email: user.email };
+  async register(registerDto: RegisterDto) {
+    const user = await this.usersService.findByEmail(registerDto.email);
+    if (user) {
+      throw new ConflictException('Email already taken');
+    }
+
+    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+    const newUser = await this.usersService.createUser({
+      username: registerDto.username,
+      email: registerDto.email,
+      hashedPassword: hashedPassword,
+    });
+
+    return newUser;
+  }
+
+  async validteUser(email: string, password: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    return user;
+  }
+
+  async login(user: any) {
+    const payload = {
+      username: user.username,
+      sub: user.user_id,
+      email: user.email,
+    };
+
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_ACCESS_SECRET || 'access-secret',
       expiresIn: '15m',
@@ -28,66 +61,60 @@ export class AuthService {
       secret: process.env.JWT_REFRESH_SECRET || 'refresh-secret',
       expiresIn: '7d',
     });
-    return { accessToken, refreshToken };
-  }
 
-  async register(registerDto: RegisterDto) {
-    const { username, email, password, passwordConfirmation } = registerDto;
-    if (password !== passwordConfirmation) {
-      throw new BadRequestException('Passwords do not match');
-    }
-    const existingUser = await this.usersService.findByEmail(email);
-    if (existingUser) {
-      throw new ConflictException('Email already in use');
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await this.usersService.createUser({
-      username,
-      email,
-      hashedPassword,
+    const hashedToken = await bcrypt.hash(refreshToken, 10);
+    await this.usersService.updateRefreshToken(user.user_id, hashedToken);
+
+    return { accessToken, refreshToken, payload };
+  }
+  async verifyAccessToken(token: string) {
+    return this.jwtService.verify(token, {
+      secret: process.env.JWT_ACCESS_SECRET || 'access-secret',
     });
-    const tokens = this.generateTokens(user);
-    // DB에 해싱된 리프레시 토큰 저장
-    await this.usersService.updateRefreshToken(
-      user.user_id,
-      tokens.refreshToken,
-    );
-    return { user, ...tokens };
   }
 
-  async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
-    const user = await this.usersService.findByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-    const isValid = await bcrypt.compare(password, user.password_hash);
-    if (!isValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-    const tokens = this.generateTokens(user);
-    // DB에 리프레시 토큰 업데이트
-    await this.usersService.updateRefreshToken(
-      user.user_id,
-      tokens.refreshToken,
-    );
-    return { user, ...tokens };
+  async verifyRefreshToken(refreshToken: string) {
+    return this.jwtService.verify(refreshToken, {
+      secret: process.env.JWT_REFRESH_SECRET || 'refresh-secret',
+    });
   }
 
-  async refreshTokens(userId: number, refreshToken: string) {
+  async refreshToken(userId: number, refreshToken: string) {
     const user = await this.usersService.findById(userId);
-    if (!user.refresh_token) {
-      throw new UnauthorizedException('No refresh token found');
+    if (!user || !user.refresh_token) {
+      throw new BadRequestException('Refresh token not found');
     }
+
     const isMatch = await bcrypt.compare(refreshToken, user.refresh_token);
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new BadRequestException('Invalid refresh token');
     }
-    const tokens = this.generateTokens(user);
+
+    const payload = {
+      username: user.username,
+      sub: user.user_id,
+      email: user.email,
+    };
+
+    const newAccessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_ACCESS_SECRET || 'access-secret',
+      expiresIn: '15m',
+    });
+    const newRefreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET || 'refresh-secret',
+      expiresIn: '7d',
+    });
+
+    const newHashedRefreshToken = await bcrypt.hash(newRefreshToken, 10);
     await this.usersService.updateRefreshToken(
       user.user_id,
-      tokens.refreshToken,
+      newHashedRefreshToken,
     );
-    return tokens;
+
+    return { accessToken: newAccessToken, refreshToken: newHashedRefreshToken };
+  }
+
+  async logout(userId: number) {
+    return this.usersService.updateRefreshToken(userId, null);
   }
 }

@@ -63,8 +63,7 @@ export class UsersService {
    * @param refreshToken - 클라이언트로부터 받은 리프레시 토큰 (plain text)
    * @returns 업데이트된 사용자 객체
    */
-  async updateRefreshToken(userId: number, refreshToken: string) {
-    const hashedToken = await bcrypt.hash(refreshToken, 10);
+  async updateRefreshToken(userId: number, hashedToken: string | null) {
     return this.prisma.user.update({
       where: { user_id: userId },
       data: { refresh_token: hashedToken },
