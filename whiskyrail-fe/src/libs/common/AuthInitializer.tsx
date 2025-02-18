@@ -4,20 +4,16 @@ import { useAuthStore, User } from "@/libs/stores/authStore";
 import { useEffect } from "react";
 
 interface AuthInitializerProps {
-  initAccessToken: string | null;
   initUser: User | null;
 }
 
-const AuthInitializer = ({
-  initAccessToken,
-  initUser,
-}: AuthInitializerProps) => {
+const AuthInitializer = ({ initUser }: AuthInitializerProps) => {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
   useEffect(() => {
-    if (initUser && initAccessToken) {
-      initializeAuth(initAccessToken, initUser);
+    if (initUser) {
+      initializeAuth(initUser);
     }
-  }, [initUser, initAccessToken, initializeAuth]);
+  }, [initUser, initializeAuth]);
 
   return null;
 };

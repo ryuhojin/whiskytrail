@@ -6,7 +6,6 @@ export function middleware(req: NextRequest) {
 
   // 로그인 상태에서 접근하면 안되는 페이지 경로
   const protectedPaths = ["/login", "/signup"];
-
   // 쿠키에서 refreshToken 값을 읽음
   const refreshToken = req.cookies.get("refreshToken")?.value;
 

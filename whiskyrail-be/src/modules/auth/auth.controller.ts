@@ -14,7 +14,7 @@ import { LoginDto } from './dto/login.dto';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { Public } from 'src/common/decorators/public.decorator';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { accessCookieOptions, refrehCookiOptions } from './options';
 
 @Controller('auth')
 export class AuthController {
@@ -37,17 +37,10 @@ export class AuthController {
     const { accessToken, refreshToken, payload } =
       await this.authService.login(user);
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      domain:
-        process.env.NODE_ENV === 'production' ? '.whiskyrail.com' : undefined,
-    };
+    res.cookie('accessToken', accessToken, accessCookieOptions);
+    res.cookie('refreshToken', refreshToken, refrehCookiOptions);
 
-    res.cookie('refreshToken', refreshToken, cookieOptions);
-
-    return { accessToken, payload };
+    return { payload };
   }
 
   @Public()
@@ -61,38 +54,26 @@ export class AuthController {
     const refreshToken = req.cookies['refreshToken'];
     if (!refreshToken) return;
 
-    let decode: any;
+    let payload: any;
     try {
-      decode = await this.authService.verifyRefreshToken(refreshToken);
+      payload = await this.authService.verifyRefreshToken(refreshToken);
     } catch (e) {
       throw new UnauthorizedException('Invalid refresh token');
     }
-    const userId = decode.sub;
+    const userId = payload.sub;
     const tokens = await this.authService.refreshToken(userId, refreshToken);
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      domain:
-        process.env.NODE_ENV === 'production' ? '.whiskyrail.com' : undefined,
-    };
-    res.cookie('refreshToken', tokens.refreshToken, cookieOptions);
-
-    return { accessToken: tokens.accessToken, payload: decode };
+    res.cookie('accessToken', tokens.accessToken, accessCookieOptions);
+    res.cookie('refreshToken', tokens.refreshToken, refrehCookiOptions);
+    console.log(payload)
+    return { payload };
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@GetUser() user: any, @Res({ passthrough: true }) res) {
     await this.authService.logout(user.user_id);
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      domain:
-        process.env.NODE_ENV === 'production' ? '.whiskyrail.com' : undefined,
-    });
+    res.clearCookie('accessToken', accessCookieOptions);
+    res.clearCookie('refreshToken', refrehCookiOptions);
     return { message: 'Logged out successfully' };
   }
 }

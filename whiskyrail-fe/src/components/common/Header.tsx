@@ -6,10 +6,9 @@ import { useEffect, useState } from "react";
 
 interface HeaderProps {
   initUser: User | null;
-  initAccessToken: string | null;
 }
-export default function Header({ initUser, initAccessToken }: HeaderProps) {
-  const { user, logout, setUser, setAccessToken } = useAuthStore();
+export default function Header({ initUser }: HeaderProps) {
+  const { user, logout, setUser } = useAuthStore();
   const [displayUser, setDisplayUser] = useState(initUser);
 
   useEffect(() => {
@@ -20,12 +19,10 @@ export default function Header({ initUser, initAccessToken }: HeaderProps) {
     } else if (initUser) {
       setDisplayUser(initUser);
       setUser(initUser);
-      setAccessToken(initAccessToken);
     }
-  }, [user, initUser, initAccessToken, setUser, setAccessToken]);
+  }, [user, initUser, setUser]);
 
   const handleLogout = () => {
-
     logout();
   };
   return (
@@ -55,7 +52,7 @@ export default function Header({ initUser, initAccessToken }: HeaderProps) {
                 <Link href="/login">Login</Link>
               </li>
               <li>
-                <Link href="/signup">Signup</Link>
+                <Link href="/register">Signup</Link>
               </li>
             </>
           )}

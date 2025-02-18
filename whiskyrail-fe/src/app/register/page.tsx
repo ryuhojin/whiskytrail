@@ -5,7 +5,12 @@ import axiosInstance from "@/libs/common/axiosInstance";
 import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
-  const [form, setForm] = useState({ email: "", username: "", password: "" });
+  const [form, setForm] = useState({
+    email: "",
+    username: "",
+    password: "",
+    passwordConfirmation: "",
+  });
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -18,7 +23,7 @@ export default function SignupPage() {
     setError("");
     try {
       // 실제 회원가입 API 엔드포인트에 맞게 수정하세요.
-      await axiosInstance.post("/auth/signup", form);
+      await axiosInstance.post("/auth/register", form);
       router.push("/login");
     } catch (err) {
       console.error("Signup error:", err);
@@ -59,6 +64,16 @@ export default function SignupPage() {
             type="password"
             name="password"
             value={form.password}
+            onChange={handleChange}
+            required
+          />
+        </label>
+        <label>
+          Password:
+          <input
+            type="password"
+            name="passwordConfirmation"
+            value={form.passwordConfirmation}
             onChange={handleChange}
             required
           />
