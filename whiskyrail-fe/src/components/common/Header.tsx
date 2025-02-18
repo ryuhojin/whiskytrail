@@ -1,12 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { useAuthStore } from "@/libs/stores/authStore";
-import { useEffect } from "react";
+import { User, useAuthStore } from "@/libs/stores/authStore";
+import { useEffect, useState } from "react";
 
-export default function Header() {
-  const { user, logout } = useAuthStore();
-    
+interface HeaderProps {
+  initUser: User | null;
+  initAccessToken: string | null;
+}
+export default function Header({ initUser, initAccessToken }: HeaderProps) {
+  const { user, logout, setUser, setAccessToken } = useAuthStore();
+  const [displayUser, setDisplayUser] = useState(initUser);
+
+  useEffect(() => {
+    if (!user) {
+      setDisplayUser(null);
+    } else if (user) {
+      setDisplayUser(user);
+    } else if (initUser) {
+      setDisplayUser(initUser);
+      setUser(initUser);
+      setAccessToken(initAccessToken);
+    }
+  }, [user, initUser, initAccessToken, setUser, setAccessToken]);
+
+  const handleLogout = () => {
+
+    logout();
+  };
   return (
     <header style={{ padding: "1rem", borderBottom: "1px solid #ddd" }}>
       <nav>
@@ -21,11 +42,11 @@ export default function Header() {
           <li>
             <Link href="/">Home</Link>
           </li>
-          {user ? (
+          {displayUser ? (
             <>
-              <li>{user.email}</li>
+              <li>{displayUser.email}</li>
               <li>
-                <button onClick={logout}>Logout</button>
+                <button onClick={handleLogout}>Logout</button>
               </li>
             </>
           ) : (

@@ -67,6 +67,11 @@ export class AuthService {
 
     return { accessToken, refreshToken, payload };
   }
+
+  async logout(userId: number) {
+    return this.usersService.updateRefreshToken(userId, null);
+  }
+
   async verifyAccessToken(token: string) {
     return this.jwtService.verify(token, {
       secret: process.env.JWT_ACCESS_SECRET || 'access-secret',
@@ -74,7 +79,7 @@ export class AuthService {
   }
 
   async verifyRefreshToken(refreshToken: string) {
-    return this.jwtService.verify(refreshToken, {
+    return await this.jwtService.verify(refreshToken, {
       secret: process.env.JWT_REFRESH_SECRET || 'refresh-secret',
     });
   }
@@ -111,10 +116,6 @@ export class AuthService {
       newHashedRefreshToken,
     );
 
-    return { accessToken: newAccessToken, refreshToken: newHashedRefreshToken };
-  }
-
-  async logout(userId: number) {
-    return this.usersService.updateRefreshToken(userId, null);
+    return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
 }

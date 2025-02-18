@@ -41,7 +41,6 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
       domain:
         process.env.NODE_ENV === 'production' ? '.whiskyrail.com' : undefined,
     };
@@ -60,13 +59,11 @@ export class AuthController {
   ) {
     // 일반적으로 리프레시 토큰은 헤더의 Bearer 토큰 또는 Body로 전달합니다.
     const refreshToken = req.cookies['refreshToken'];
-    if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found');
-    }
+    if (!refreshToken) return;
 
     let decode: any;
     try {
-      decode = this.authService.verifyRefreshToken(refreshToken);
+      decode = await this.authService.verifyRefreshToken(refreshToken);
     } catch (e) {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -77,11 +74,12 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
       domain:
         process.env.NODE_ENV === 'production' ? '.whiskyrail.com' : undefined,
     };
     res.cookie('refreshToken', tokens.refreshToken, cookieOptions);
+
+    return { accessToken: tokens.accessToken, payload: decode };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -96,23 +94,5 @@ export class AuthController {
         process.env.NODE_ENV === 'production' ? '.whiskyrail.com' : undefined,
     });
     return { message: 'Logged out successfully' };
-  }
-
-  @Public()
-  @Get('me')
-  async getMe(@Req() req, @Res({ passthrough: true }) res) {
-    const authHeader = req.header.authorization;
-    let accessToken: string;
-    let user: any;
-
-    if(authHeader && authHeader.startWith('Bearer ')) {
-      accessToken = authHeader.split(' ')[1];
-
-      try {
-
-      } catch (e) {
-        
-      }
-    }
   }
 }

@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/libs/stores/authStore';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/libs/stores/authStore";
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
   const { login } = useAuthStore();
   const router = useRouter();
 
@@ -16,22 +16,22 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setError("");
     try {
       await login(form.email, form.password);
-      router.push('/'); // 로그인 성공 후 홈으로 이동
+      router.push("/"); // 로그인 성공 후 홈으로 이동
     } catch (err) {
-      console.error('Login error:', err);
-      setError('로그인에 실패했습니다.');
+      console.error("Login error:", err);
+      setError("로그인에 실패했습니다.");
     }
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div style={{ padding: "2rem" }}>
       <h1>Login</h1>
       <form
         onSubmit={handleSubmit}
-        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+        style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
       >
         <label>
           Email:
@@ -53,7 +53,7 @@ export default function LoginPage() {
             required
           />
         </label>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
         <button type="submit">Login</button>
       </form>
     </div>

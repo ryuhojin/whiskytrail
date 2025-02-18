@@ -1,11 +1,9 @@
-// stores/authStore.ts
 import { create } from "zustand";
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from "../common/axiosInstance";
 
 export interface User {
   user_id: number;
   email: string;
-  // 필요한 다른 필드들을 추가
 }
 
 interface AuthState {
@@ -13,15 +11,11 @@ interface AuthState {
   accessToken: string | null;
   setAccessToken: (token: string | null) => void;
   setUser: (user: User | null) => void;
-  initAuth: (accessToken: string | null, user: User | null) => void;
   clearAuth: () => void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshAccessToken: () => Promise<void>;
-  getInitialAuth: () => Promise<{
-    accessToken: string | null;
-    user: User | null;
-  }>;
+  initializeAuth: (accessToken: string | null, user: User | null) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -38,12 +32,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setUser: (user: User | null) => set({ user }),
   // 초기 인증 정보를 한번에 설정하는 함수
-  initAuth: (accessToken: string | null, user: User | null) => {
-    axiosInstance.defaults.headers.common["Authorization"] = accessToken
-      ? `Bearer ${accessToken}`
-      : "";
-    set({ accessToken, user });
-  },
   clearAuth: () => {
     axiosInstance.defaults.headers.common["Authorization"] = "";
     set({ user: null, accessToken: null });
@@ -77,8 +65,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      axiosInstance.defaults.headers.common["Authorization"] = "";
       set({ accessToken: null, user: null });
+      axiosInstance.defaults.headers.common["Authorization"] = "";
     }
   },
 
@@ -86,26 +74,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   refreshAccessToken: async () => {
     try {
       const response = await axiosInstance.post("/auth/refresh");
-      const { accessToken } = response.data;
-      // axiosInstance.defaults.headers.common[
-      //   "Authorization"
-      // ] = `Bearer ${accessToken}`;
-      set({ accessToken });
+      if (!response.data.data) return;
+      const { accessToken, payload } = response.data.data;
+      const user = payload;
+      // axiosInstance 헤더에 accessToken 설정
+      axiosInstance.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${accessToken}`;
+      set({ accessToken, user });
     } catch (error) {
       console.error("Refresh token failed:", error);
       throw error;
     }
   },
-  // 초기 인증 정보를 가져오는 함수 (HttpOnly refreshToken을 활용)
-  getInitialAuth: async () => {
-    try {
-      const response = await axiosInstance.get("/auth/me");
-      const { accessToken, user } = response.data;
-      set({ accessToken, user });
-      return { accessToken, user };
-    } catch (error) {
-      set({ accessToken: null, user: null });
-      return { accessToken: null, user: null };
-    }
+  initializeAuth: (accessToken, user) => {
+    set({ accessToken, user });
   },
 }));
