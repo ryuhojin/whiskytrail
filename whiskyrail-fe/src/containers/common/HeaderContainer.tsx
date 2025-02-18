@@ -14,19 +14,21 @@ export default function HeaderContainer({ initUser }: HeaderContainerProps) {
   const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    if (!hasInitialized && initUser) {
-      setUser(initUser);
-      setDisplayUser(initUser);
-      setHasInitialized(true);
-    }
-  }, [initUser, hasInitialized, setUser]);
-
-  useEffect(() => {
-    if (hasInitialized) {
+    if (!hasInitialized) {
+      if (initUser) {
+        setUser(initUser);
+        setDisplayUser(initUser);
+        setHasInitialized(true);
+      } else if (user) {
+        setUser(user);
+        setDisplayUser(user);
+        setHasInitialized(true);
+      }
+    } else {
+      // 초기화가 완료된 이후엔 store의 user 값에 따라 displayUser를 업데이트합니다.
       setDisplayUser(user);
     }
-  }, [user, hasInitialized]);
-
+  }, [user, initUser, hasInitialized, setUser]);
   const handleLogout = () => {
     logout();
   };
