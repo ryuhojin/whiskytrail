@@ -65,12 +65,13 @@ export class AuthController {
 
     res.cookie('accessToken', tokens.accessToken, accessCookieOptions);
     res.cookie('refreshToken', tokens.refreshToken, refrehCookiOptions);
-    console.log(payload)
+    console.log(payload);
     return { payload };
   }
 
   @Post('logout')
   async logout(@GetUser() user: any, @Res({ passthrough: true }) res) {
+    if (!user) return;
     await this.authService.logout(user.user_id);
     res.clearCookie('accessToken', accessCookieOptions);
     res.clearCookie('refreshToken', refrehCookiOptions);

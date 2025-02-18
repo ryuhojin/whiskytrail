@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Header from "@/components/common/Header";
+import "./global.css";
 import AuthInitializer from "@/libs/common/AuthInitializer";
 import fetchInstance from "@/libs/common/fetchInstance";
-import "./global.css";
+import HeaderContainer from "@/containers/common/HeaderContainer";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -26,6 +26,7 @@ const initFetchAuthentcation = async () => {
     console.error(error);
   }
 };
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -40,7 +41,7 @@ export default async function RootLayout({
       </head>
       <body>
         <AuthInitializer initUser={initUser} />
-        <Header initUser={initUser} />
+        <HeaderContainer initUser={initUser} />
         {children}
       </body>
     </html>

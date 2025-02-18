@@ -1,30 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { User, useAuthStore } from "@/libs/stores/authStore";
-import { useEffect, useState } from "react";
+import { User } from "@/libs/stores/authStore";
 
-interface HeaderProps {
-  initUser: User | null;
+interface HeaderViewProps {
+  displayUser: User | null;
+  onLogout: () => void;
 }
-export default function Header({ initUser }: HeaderProps) {
-  const { user, logout, setUser } = useAuthStore();
-  const [displayUser, setDisplayUser] = useState(initUser);
 
-  useEffect(() => {
-    if (!user) {
-      setDisplayUser(null);
-    } else if (user) {
-      setDisplayUser(user);
-    } else if (initUser) {
-      setDisplayUser(initUser);
-      setUser(initUser);
-    }
-  }, [user, initUser, setUser]);
-
-  const handleLogout = () => {
-    logout();
-  };
+export default function HeaderView({ displayUser, onLogout }: HeaderViewProps) {
   return (
     <header style={{ padding: "1rem", borderBottom: "1px solid #ddd" }}>
       <nav>
@@ -43,7 +27,7 @@ export default function Header({ initUser }: HeaderProps) {
             <>
               <li>{displayUser.email}</li>
               <li>
-                <button onClick={handleLogout}>Logout</button>
+                <button onClick={onLogout}>Logout</button>
               </li>
             </>
           ) : (

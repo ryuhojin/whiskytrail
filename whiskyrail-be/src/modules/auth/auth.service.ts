@@ -55,11 +55,11 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_ACCESS_SECRET || 'access-secret',
-      expiresIn: '15m',
+      expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
     });
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET || 'refresh-secret',
-      expiresIn: '7d',
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     });
 
     const hashedToken = await bcrypt.hash(refreshToken, 10);
@@ -103,11 +103,11 @@ export class AuthService {
 
     const newAccessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_ACCESS_SECRET || 'access-secret',
-      expiresIn: '15m',
+      expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
     });
     const newRefreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET || 'refresh-secret',
-      expiresIn: '7d',
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     });
 
     const newHashedRefreshToken = await bcrypt.hash(newRefreshToken, 10);
