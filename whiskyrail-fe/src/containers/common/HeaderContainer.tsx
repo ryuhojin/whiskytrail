@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { User, useAuthStore } from "@/libs/stores/authStore";
-import HeaderView from "@/components/common/HeaderView";
+import { HeaderView } from "@/components/layout/HeaderView";
+import { NavView } from "@/components/layout/NavView";
 
 interface HeaderContainerProps {
   initUser: User | null;
@@ -33,5 +34,23 @@ export default function HeaderContainer({ initUser }: HeaderContainerProps) {
     logout();
   };
 
-  return <HeaderView displayUser={displayUser} onLogout={handleLogout} />;
+  return (
+    <>
+      <HeaderView>
+        <HeaderView.Continaer>
+          <HeaderView.Module>
+            <NavView>
+              <></>
+            </NavView>
+            <NavView>
+              <></>
+            </NavView>
+          </HeaderView.Module>
+          <HeaderView.Module>
+            <></>
+          </HeaderView.Module>
+        </HeaderView.Continaer>
+      </HeaderView>
+    </>
+  );
 }
