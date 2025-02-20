@@ -2,8 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { User, useAuthStore } from "@/libs/stores/authStore";
-import { HeaderView } from "@/components/layout/HeaderView";
-import { NavView } from "@/components/layout/NavView";
+import HeaderView from "@/components/layout/HeaderView";
+import { NavButton, NavLinkButton } from "@/components/common/Button";
+import {
+  TbBarrel,
+  TbDropletStar,
+  TbGlassFullFilled,
+  TbMapPinSearch,
+} from "react-icons/tb";
+//import { HeaderView } from "@/components/layout/HeaderView";
+//import { NavView } from "@/components/layout/NavView";
 
 interface HeaderContainerProps {
   initUser: User | null;
@@ -30,6 +38,7 @@ export default function HeaderContainer({ initUser }: HeaderContainerProps) {
       setDisplayUser(user);
     }
   }, [user, initUser, hasInitialized, setUser]);
+
   const handleLogout = () => {
     logout();
   };
@@ -37,19 +46,38 @@ export default function HeaderContainer({ initUser }: HeaderContainerProps) {
   return (
     <>
       <HeaderView>
-        <HeaderView.Continaer>
-          <HeaderView.Module>
-            <NavView>
-              <></>
-            </NavView>
-            <NavView>
-              <></>
-            </NavView>
-          </HeaderView.Module>
-          <HeaderView.Module>
-            <></>
-          </HeaderView.Module>
-        </HeaderView.Continaer>
+        <HeaderView.Module>
+          <HeaderView.NavBox>
+            <HeaderView.Title />
+            {displayUser && <HeaderView.SearchBox />}
+          </HeaderView.NavBox>
+          <HeaderView.NavBox>
+            {!displayUser && <NavLinkButton href="/login">로그인</NavLinkButton>}
+            {displayUser && <NavButton onClick={handleLogout}>로그아웃</NavButton>}
+          </HeaderView.NavBox>
+        </HeaderView.Module>
+        {displayUser && (
+          <HeaderView.ModuleFlat>
+            <HeaderView.NavBox>
+              <NavLinkButton href="/review" icon={<TbGlassFullFilled />}>
+                위스키
+              </NavLinkButton>
+              <NavLinkButton href="/review" icon={<TbBarrel />}>
+                캐스크
+              </NavLinkButton>
+              <NavLinkButton
+                href="/review"
+                hideOnMobile
+                icon={<TbMapPinSearch />}
+              >
+                지역
+              </NavLinkButton>
+              <NavLinkButton href="/review" icon={<TbDropletStar />}>
+                리뷰
+              </NavLinkButton>
+            </HeaderView.NavBox>
+          </HeaderView.ModuleFlat>
+        )}
       </HeaderView>
     </>
   );

@@ -3,6 +3,14 @@ import "./global.css";
 import AuthInitializer from "@/libs/common/AuthInitializer";
 import fetchInstance from "@/libs/common/fetchInstance";
 import HeaderContainer from "@/containers/common/HeaderContainer";
+import localFont from "next/font/local";
+
+const pretendard = localFont({
+  src: "../fonts/PretendardVariable.woff2",
+  display: "swap",
+  weight: "45 920",
+  variable: "--font-pretendard",
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -39,7 +47,7 @@ export default async function RootLayout({
       <head>
         <title>Whhiskyrail</title>
       </head>
-      <body>
+      <body className={`${pretendard.variable} font-pretendard`}>
         <AuthInitializer initUser={initUser} />
         <HeaderContainer initUser={initUser} />
         {children}

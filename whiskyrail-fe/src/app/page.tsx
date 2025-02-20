@@ -1,4 +1,10 @@
+import BannerView from "@/components/layout/BannerView";
+
 const HomePage = () => {
-  return <h1 className="text-3xl font-bold underline">Hello world!</h1>;
+  return (
+    <main>
+      <BannerView />
+    </main>
+  );
 };
 export default HomePage;

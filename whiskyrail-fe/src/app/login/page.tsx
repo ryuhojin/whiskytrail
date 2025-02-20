@@ -27,35 +27,37 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Login</h1>
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-      >
-        <label>
-          Email:
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        <label>
-          Password:
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit">Login</button>
-      </form>
+    <div className="flex-1 flex justify-center items-center">
+      <div className="flex flex-col w-full lg:w-[720px] space-y-8 p-8 sm:p-10 bg-gray-800 rounded-2xl shadow-2xl">
+        <h1>Login</h1>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+        >
+          <label>
+            Email:
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+          </label>
+          <label>
+            Password:
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
+          </label>
+          {error && <p style={{ color: "red" }}>{error}</p>}
+          <button type="submit">Login</button>
+        </form>
+      </div>
     </div>
   );
 }
